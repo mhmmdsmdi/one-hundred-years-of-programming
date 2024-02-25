@@ -14,4 +14,4 @@ May it be a memory for future generations
 
  [Directory](asp and c#) 
 
--  [Madiator](asp and c#\Madiator.md) 
+-  [Madiator](asp and c#\madiator.md) 

@@ -6,12 +6,10 @@ May it be a memory for future generations
 
 ## Docker
 
- [Directory](docker) 
-
-
+[Directory](docker)
 
 ## Asp.Net and C#
 
- [Directory](asp and c#) 
+[Directory](asp and c#)
 
--  [Madiator](asp and c#\madiator.md) 
+- [Mediator](asp and c#\mediator.md)

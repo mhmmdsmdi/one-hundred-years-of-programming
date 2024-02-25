@@ -10,6 +10,6 @@ May it be a memory for future generations
 
 ## Asp.Net and C#
 
-[Directory](asp and c#)
+[Directory](<asp and csharp>)
 
-- [Mediator](asp and c#\mediator.md)
+- [Mediator](<asp and csharp/mediator.md>)

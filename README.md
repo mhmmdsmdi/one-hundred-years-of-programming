@@ -16,4 +16,4 @@ May it be a memory for future generations
 
 ## Database
 
-- [Timescale DB with EF Core](articles\timescaledb-with-ef-core.md)
+- [Timescale DB with EF Core](articles/timescaledb-with-ef-core.md)

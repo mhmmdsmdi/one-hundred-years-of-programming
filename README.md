@@ -13,3 +13,7 @@ May it be a memory for future generations
 [Directory](<asp and csharp>)
 
 - [Mediator](<asp and csharp/mediator.md>)
+
+## Database
+
+- [Timescale DB with EF Core](articles\timescaledb-with-ef-core.md)

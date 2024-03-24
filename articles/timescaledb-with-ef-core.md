@@ -170,4 +170,6 @@ Then use your favourate tool like “[Azure Data Studio](https://docs.microsoft.
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 ```
 
-now you are good and then try connecting to the Postgres on cloud..
+now you are good and then try connecting to the Postgres on cloud.
+
+Reference : https://gibinfrancis.medium.com/timescale-db-with-ef-core-94c948829608

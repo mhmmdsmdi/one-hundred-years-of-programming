@@ -1,18 +1,5 @@
 # TimescaleDB Reference Guide
 
-## Table of Contents
-
-- [Table Creation](#table-creation)
-- [Hypertable Management](#hypertable-management)
-- [Partitioning](#partitioning)
-- [Indexing](#indexing)
-- [Compression](#compression)
-- [Chunk Management](#chunk-management)
-- [Database Metrics](#database-metrics)
-- [Common Queries](#common-queries)
-- [Performance Tuning](#performance-tuning)
-- [Materialized Views](#materialized-views)
-
 ## Table Creation
 
 Create a standard table for time-series data:
@@ -84,6 +71,12 @@ Create an optimized index for time-series queries:
 CREATE INDEX ON conditions (device, time DESC);
 ```
 
+B-Tree Index creation (note: can be resource-intensive):
+
+```postgresql
+CREATE UNIQUE INDEX ON data_histories (tag_unique_id, receive_time);
+```
+
 Reindex a specific chunk:
 
 ```postgresql
@@ -112,6 +105,42 @@ BEGIN
         EXECUTE format('REINDEX TABLE %s;', chunk_record.chunk_name);
     END LOOP; 
 END $$;
+```
+
+Monitor index usage and size:
+
+```postgresql
+-- Check index sizes
+SELECT pg_size_pretty(hypertable_index_size('data_histories_receive_time_idx')) AS index_size;
+SELECT pg_size_pretty(hypertable_index_size('data_histories_tag_unique_id_receive_time_idx')) AS index_size;
+
+-- Find unused or low-usage indexes
+SELECT 
+    s.schemaname,
+    s.relname AS table_name,
+    s.indexrelname AS index_name,
+    pg_size_pretty(pg_relation_size(s.indexrelid)) AS index_size,
+    s.idx_scan AS index_scans, -- Number of index scans since last reset
+    i.indisunique AS is_unique,
+    i.indisprimary AS is_primary
+FROM 
+    pg_stat_user_indexes s
+JOIN 
+    pg_index i ON s.indexrelid = i.indexrelid
+WHERE 
+    s.idx_scan = 0  -- index has never been used
+    AND NOT i.indisprimary -- don't suggest dropping primary keys
+    AND NOT i.indisunique -- don't suggest dropping unique constraints
+ORDER BY 
+    pg_relation_size(s.indexrelid) DESC;
+
+-- Track index usage over time
+SELECT relname, indexrelname, last_idx_scan, idx_scan
+FROM pg_stat_user_indexes
+ORDER BY idx_scan;
+
+-- Reset indexes scan counter
+SELECT pg_stat_reset();
 ```
 
 ## Compression
@@ -189,6 +218,43 @@ Remove a compression policy:
 
 ```postgresql
 SELECT remove_compression_policy('<table_name>');
+```
+
+## Columnstore
+
+Enable columnstore on a table:
+
+```postgresql
+-- Remove existing compression policy if needed
+SELECT remove_compression_policy('data_histories');
+
+-- Enable columnstore
+ALTER TABLE data_histories SET (
+   timescaledb.enable_columnstore = true, 
+   timescaledb.segmentby = 'tag_unique_id');
+   
+-- Add columnstore policy
+CALL add_columnstore_policy(
+   'data_histories',
+   INTERVAL '3h',
+   hypercore_use_access_method => true
+);
+```
+
+Remove columnstore policy:
+
+```postgresql
+CALL remove_columnstore_policy('data_histories');
+```
+
+Monitor columnstore compression:
+
+```postgresql
+-- Watch compression changes
+SELECT 
+  pg_size_pretty(before_compression_total_bytes) as before,
+  pg_size_pretty(after_compression_total_bytes) as after
+FROM hypertable_compression_stats('data_histories');
 ```
 
 ## Chunk Management
@@ -280,26 +346,6 @@ FROM
   approximate_row_count ('data_histories');
 ```
 
-## Common Queries
-
-Analyze a table for query optimization:
-
-```postgresql
-ANALYSE data_histories;
-```
-
-Explain a query execution plan:
-
-```postgresql
-EXPLAIN SELECT * FROM "data";
-```
-
-Change a table to unlogged mode (faster inserts, but unsafe for replication):
-
-```postgresql
-ALTER TABLE data_histories SET UNLOGGED;
-```
-
 ## Performance Tuning
 
 View memory configuration parameters:
@@ -342,6 +388,26 @@ SELECT
   wait_event
 FROM
   pg_stat_activity;
+```
+
+## Common Queries
+
+Analyze a table for query optimization:
+
+```postgresql
+ANALYSE data_histories;
+```
+
+Explain a query execution plan:
+
+```postgresql
+EXPLAIN SELECT * FROM "data";
+```
+
+Change a table to unlogged mode (faster inserts, but unsafe for replication):
+
+```postgresql
+ALTER TABLE data_histories SET UNLOGGED;
 ```
 
 ## Materialized Views

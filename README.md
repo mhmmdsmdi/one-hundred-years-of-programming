@@ -10,9 +10,9 @@ May it be a memory for future generations
 
 ## Asp.Net and C#
 
-[Directory](<asp and csharp>)
+[Directory](<asp-csharp>)
 
-- [Mediator](<asp and csharp/mediator.md>)
+- [Mediator](<asp-csharp/mediator.md>)
 
 ## Database
 

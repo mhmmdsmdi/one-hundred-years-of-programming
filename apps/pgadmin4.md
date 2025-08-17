@@ -1,0 +1,18 @@
+# pgAdmin 4
+
+## Docker Compose
+
+```yaml
+version: '3.8'
+
+services:
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+```
